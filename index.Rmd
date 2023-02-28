@@ -2,7 +2,6 @@
 title: "A3: SPL Library Checkouts"
 output: html_document
 ---
-
 ### Introduction
 
 An introduction of the data and a description of the trends/books/items you are choosing to analyze (and why!)
@@ -11,76 +10,95 @@ An introduction of the data and a description of the trends/books/items you are 
 
 Write a summary paragraph of findings that includes the 5 values calculated from your summary information R script
 
-These will likely be calculated using your DPLYR skills, answering questions such as:
-
-- What is the average number of checkouts for each item?
-- What is the month or year with the most/least checkouts for a book that you're interested in?
-- What is the month or year with the most/least checkouts for ebooks?
-- How has the number of print book checkouts changed over time?
-
-Feel free to calculate and report values that you find relevant.
+For this assignment, I analyzed all PHYSICAL checkouts from the library through 2022. In my analysis
+I discovered that the most popular author of 2022 was Emily St. John Mandel, with the most popular book
+being of the year _Sea of Tranquility_ written by her. I also learned, the most popular month for checking out books was January, most likely due to New Years resolutions towards reading. Lastly, I discovered that behind
+book checkouts, video and sound discs were the most commonly checked out material type.
 
 ### The Dataset
 
 - Who collected/published the data?  
+
+The Seattle Public Library
+
 - What are the parameters of the data (dates, number of checkouts, kinds of books, etc.)?
+
+They refresh monthly, but keep track of way more
+than just book checkouts. They also collect data
+on items checked out online. It goes back to Apr2005
+
 - How was the data collected or generated?  
-- Why was the data collected?  
+
+This data was collected using a monthly count
+of Seattle Public Library checkouts of both
+physical and electronic items
+
+- Why was the data collected?
+
+They claim to collect this data to: improve
+public understanding, generate economic 
+opportunity, empower city employees, and
+encourage development.
+
 - What, if any, ethical questions do you need to consider when working with this data?  
+
+I do not see any ethical concerns when it comes
+to this data; however, if this data starts to 
+include PERSONAL information of those who checkout
+books, or if the data is used towards book banning
+or de-funding the library, then I think it starts
+to enter an unethical territory.
+
 - What are possible limitations or problems with this data?   (at least 200 words)
+
+One that comes to mind is we don't know who is
+checking out what. For instance, one individual
+may be using the library extremely frequently,
+checking out many more books than the average 
+individual, which will make statistics on checkouts 
+more skewed to their interests.
 
 
 ### First Trends Over Time Chart
+```{r, echo = FALSE}
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+books_per_month_df <- library_df %>% filter(MaterialType == "BOOK") %>% select(CheckoutMonth, Checkouts) %>% group_by(CheckoutMonth) %>% summarize(total_checkouts = sum(Checkouts))
 
-The first chart that you will create and include will show the trend over time of your variable/topic/interest. Think carefully about what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
+ggplot(data = books_per_month_df) + 
+      geom_line(aes(x=CheckoutMonth, y = total_checkouts)) +
+      labs(title = "Books Checked Out Per Month", x = "Month", y = "Books Checked Out")
 
-- Show more than one, but fewer than ~10 trends
-  - For example, two books, or 5 different mediums
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- You need a legend for your different line colors and a clear - legend title
-In your .Rmd file, make sure to describe why you included the chart, and what patterns emerged
 
-When we say "clear" or "human readable" titles and labels, that means that you should not just display the variable name.
-
-Here's an example of how to run an R script inside an RMarkdown file:
-
-``````{r, echo = FALSE, warning = FALSE, code = readLines("chart1_example.R")}
 ```
+
+This first chart shows the trends of Books check out in the library per month. I chose this chart to show the change throughout the year for the most basic, fundamental use of the library. As can be seen by the chart, throughout the year, less and less people check out books from the library. 
 
 ### Second Trends Over Time Chart
+```{r, echo = FALSE}
+vDiscs_per_month_df <- library_df %>% filter(MaterialType == "VIDEODISC") %>% select(CheckoutMonth, Checkouts) %>% group_by(CheckoutMonth) %>% summarize(total_checkouts = sum(Checkouts))
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+ggplot(data = vDiscs_per_month_df) + 
+  geom_line(aes(x=CheckoutMonth, y = total_checkouts)) +
+  labs(title = "Video Discs Checked Out Per Month", x = "Month", y = "Video Discs Checked Out")
 
-The second chart that you will create and include will show another trend over time of your variable/topic/interest. Think carefully about what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
-
-- Show more than one, but fewer than ~10 trends
-  - For example, two books, or 5 different mediums
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- You need a legend for your different line colors and a clear - legend title
-In your .Rmd file, make sure to describe why you included the chart, and what patterns emerged
-
-When we say "clear" or "human readable" titles and labels, that means that you should not just display the variable name.
-
-Here's an example of how to run an R script inside an RMarkdown file:
-
-``````{r, echo = FALSE, code = readLines("chart2_example.R")}
 ```
+
+This second chart shows the trends of Video Discs checked out in the library per month. I chose this chart to see if the second highest checked out material, behind books, followed the same trends as books did. As can be seen by the chart, Video Discs follow the same trend as Books, meaning that overall less people are going to the library in person, and they are not switching mediums. 
 
 ### Your Choice
+```{r, echo = FALSE}
 
-The last chart is up to you. It could be a line plot, scatter plot, histogram, bar plot, stacked bar plot, and more. Here are some requirements to help guide your design:
+material_ranking_df <- library_df %>% select(MaterialType, Checkouts) %>% group_by(MaterialType) %>% summarize(total_checkouts = sum(Checkouts)) %>% arrange(-total_checkouts) %>% slice_head(n=3)
 
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- You need a legend for your different line colors and a clear legend title
+ggplot(data = material_ranking_df) + 
+  geom_col(aes(x = MaterialType, y = total_checkouts, fill = MaterialType)) +
+  scale_color_brewer(palette = "Set2") +
+  labs(title = "Material Total Checkout Comparisons", x = "Material Type", y = "Checkouts", fill = "MaterialType")
 
-Here's an example of how to run an R script inside an RMarkdown file:
-
-``````{r, echo = FALSE, code = readLines("chart2_example.R")}
 ```
 
+This last chart shows the top 3 material types checked out from the library. I chose this chart to give context to my previous charts, and why I chose to analyze book and video disc trends. As can be seen by the chart, books and video discs are the two most popular material types checked out from the library. 
 
